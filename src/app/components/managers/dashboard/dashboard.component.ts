@@ -10,6 +10,8 @@ import {
   ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { NgxSelectModule } from 'ngx-select-ex';
 import { NgxEchartsDirective, provideEchartsCore } from 'ngx-echarts';
 import * as echarts from 'echarts/core';
 import { CanvasRenderer } from 'echarts/renderers';
@@ -29,6 +31,8 @@ import {
 } from '@foblex/flow';
 import { Tab } from '../../_shared/dynamic-tabs/dynamic-tabs.component';
 import { DeviceDetailsChartsComponent } from '../device-details-charts/device-details-charts.component';
+import { DevicesService } from '../../../services/managers/devices.service';
+import { Devices } from '../../../models/devices';
 
 echarts.use([
   CanvasRenderer,
@@ -59,7 +63,7 @@ interface OrgNode {
 
 @Component({
   selector: 'manager-dashboard',
-  imports: [CommonModule, NgxEchartsDirective, FFlowModule],
+  imports: [CommonModule, NgxEchartsDirective, FFlowModule, FormsModule, NgxSelectModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -69,13 +73,30 @@ export class DashboardComponent implements OnInit, OnDestroy {
   //#region Properties
   orgData: OrgNode | null = null;
   nodes: Array<any> = [];
+  topCenterChartOption = {};
+  yearlyElectricUsageChartOption = {};
+  monthlyElectricUsageChartOption = {};
+  dailyElectricUsageChartOption = {};
+  topRightChartOption = {};
+  bottomRightChartOption = {};
   topLeftChartOptions = {};
   topRightChartOptions = {};
-  topCenterChartOption = {};
-  bottomRightChartOption = {};
   eConnectionBehaviour = EFConnectionBehavior;
   isReady = false;
+  devices: Devices[] = [];
   deviceDetailsChart = DeviceDetailsChartsComponent;
+  @Input() deviceId!: number;
+  isLoading = false;
+
+  areaList: { name: string; color: string }[] = [];
+  readonly colorPalette = ['#FF7043', '#42A5F5', '#66BB6A', '#AB47BC', '#FFA726', '#5C5C8A', '#26C6DA', '#EF5350', '#8D6E63', '#78909C'];
+
+  currentYear = new Date().getFullYear();
+  monthOptionValue = new Date().getMonth() + 1;
+  dayOptionValue = new Date().getDate();
+
+  monthOptions = Array.from({ length: 12 }, (_, i) => ({ label: `Tháng ${i + 1}`, value: i + 1 }));
+  dayOptions: { label: string; value: number }[] = [];
 
   @ViewChild('orgChart') orgChart!: FFlowComponent;
   @ViewChild('activePowerChart', { static: false })
@@ -94,6 +115,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
   wasteOutputChart!: ElementRef;
   wasteOutputChartInstance: echarts.ECharts | null = null;
 
+  @ViewChild('dailyElectricUsageByAreaChart', { static: false })
+  dailyElectricUsageByAreaChart!: ElementRef;
+  dailyElectricUsageByAreaChartInstance: echarts.ECharts | null = null;
+
+  @ViewChild('monthlyElectricUsageByAreaChart', { static: false })
+  monthlyElectricUsageByAreaChart!: ElementRef;
+  monthlyElectricUsageByAreaChartInstance: echarts.ECharts | null = null;
+
+  @ViewChild('yearlyElectricUsageByAreaChart', { static: false })
+  yearlyElectricUsageByAreaChart!: ElementRef;
+  yearlyElectricUsageByAreaChartInstance: echarts.ECharts | null = null;
+
   @Input() dynamicTabs!: any;
 
   private refreshInterval = 10000; // 10 seconds
@@ -103,15 +136,47 @@ export class DashboardComponent implements OnInit, OnDestroy {
   //#region Constructor
   constructor(
     private dashboardService: DashboardService,
+    private devicesService: DevicesService,
     private cdr: ChangeDetectorRef
-  ) {}
-  //endregion
-
-  //#region Life cycle
+  ) { }
+  //end  //#region Life cycle
   ngOnInit() {
+    this.isLoading = true;
+    this.updateDayOptions();
     this.initializeOrgChart();
-    this.loadAllChartData();
-    this.setupAutoRefresh();
+
+    this.devicesService.getAll().subscribe({
+      next: (data) => {
+        this.devices = data;
+        if (!this.deviceId && data.length > 0) {
+          this.deviceId = data[0].Id;
+        }
+        this.loadAllChartData();
+      }
+    });
+  }
+
+  updateDayOptions() {
+    const daysInMonth = new Date(this.currentYear, this.monthOptionValue, 0).getDate();
+    this.dayOptions = Array.from({ length: daysInMonth }, (_, i) => ({ label: `Ngày ${i + 1}`, value: i + 1 }));
+    if (this.dayOptionValue > daysInMonth) {
+      this.dayOptionValue = daysInMonth;
+    }
+  }
+
+  loadAllChartData() {
+    if (!this.deviceId) return;
+    this.isLoading = true;
+    this.areaList = []; // Clear for new load
+    this.loadElectricUsageChart();
+    this.loadDailyElectricUsageByArea();
+    this.loadMonthlyElectricUsageByArea();
+    this.loadYearlyElectricUsageByArea();
+
+    setTimeout(() => {
+      this.isLoading = false;
+      this.cdr.markForCheck();
+    }, 1500);
   }
 
   ngOnDestroy() {
@@ -204,24 +269,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
       },
     });
   }
-
-  private loadAllChartData() {
-    this.loadActivePowerAndEnergyChart();
-    this.loadElectricUsageChart();
-    this.loadWasteOutputChart();
-  }
+  //#endregion
 
   private setupAutoRefresh() {
     this.clearRefreshIntervals();
 
-    this.refreshIntervals.push(
-      setInterval(() => this.loadActivePowerAndEnergyChart(), this.refreshInterval)
-    );
+    // this.refreshIntervals.push(
+    //   setInterval(() => this.loadActivePowerAndEnergyChart(), this.refreshInterval)
+    // );
+    // this.refreshIntervals.push(
+    //   setInterval(() => this.loadWasteOutputChart(), this.refreshInterval)
+    // );
     this.refreshIntervals.push(
       setInterval(() => this.loadElectricUsageChart(), this.refreshInterval)
     );
     this.refreshIntervals.push(
-      setInterval(() => this.loadWasteOutputChart(), this.refreshInterval)
+      setInterval(() => this.loadDailyElectricUsageByArea(), this.refreshInterval)
+    );
+    this.refreshIntervals.push(
+      setInterval(() => this.loadMonthlyElectricUsageByArea(), this.refreshInterval)
+    );
+    this.refreshIntervals.push(
+      setInterval(() => this.loadYearlyElectricUsageByArea(), this.refreshInterval)
     );
   }
 
@@ -427,7 +496,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
       },
     });
   }
+  //#endregion
 
+  //#region Biểu đồ đường công suất tiêu thụ điện
   private loadElectricUsageChart() {
     this.dashboardService.getElectricUsageChartData().subscribe({
       next: (result) => {
@@ -475,6 +546,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
             axisLabel: {
               color: '#ffffff',
             },
+            nameTextStyle: {
+              fontSize: 13,
+              color: '#ffffff'
+            },
           },
           series: [
             {
@@ -513,7 +588,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
       },
     });
   }
+  //#endregion
 
+  //#region Biểu đồ lượng khí thải
   private loadWasteOutputChart() {
     this.dashboardService.getWasteOutputChartData().subscribe({
       next: (result) => {
@@ -572,7 +649,272 @@ export class DashboardComponent implements OnInit, OnDestroy {
       },
     });
   }
-  //endregion
+  //#endregion
+
+  //#region Biểu đồ công suất tiêu thụ điện theo ngày
+  private loadDailyElectricUsageByArea() {
+    if (!this.deviceId) return;
+    this.dashboardService.getDailyElectricUsageByArea(this.currentYear, this.monthOptionValue, this.dayOptionValue).subscribe({
+      next: (result) => {
+        const areaMap = new Map<string, { name: string; data: Map<string, number> }>();
+        const hours = Array.from({ length: 24 }, (_, i) => `${i}h`);
+
+        result.forEach((item: any) => {
+          const areaName = item.AreaName || item.DeviceName || `Khu vực ${item.AreaId || 'Unknown'}`;
+          let hourLabel = item.XAxisValue;
+          if (hourLabel.includes(' ')) {
+            hourLabel = hourLabel.split(' ')[1].split(':')[0] + 'h';
+          } else if (!hourLabel.endsWith('h')) {
+            hourLabel = parseInt(hourLabel) + 'h';
+          }
+
+          if (!areaMap.has(areaName)) {
+            areaMap.set(areaName, { name: areaName, data: new Map() });
+            this.addToAreaList(areaName);
+          }
+          areaMap.get(areaName)!.data.set(hourLabel, item.YAxisValue);
+        });
+
+        const areas = Array.from(areaMap.keys());
+        const newOptions = {
+          title: {
+            text: 'DAILY ELECTRICITY USAGE BY AREA',
+            left: 'center',
+            top: 10,
+            textStyle: { fontSize: 26, fontWeight: 'bold', color: '#ffffff' },
+          },
+          tooltip: {
+            trigger: 'axis',
+            axisPointer: { type: 'shadow' },
+            formatter: (params: any) => {
+              let res = `<strong>Giờ: ${params[0].axisValue}</strong><br/>`;
+              let total = 0;
+              params.forEach((item: any) => {
+                const val = Number(item.value) || 0;
+                res += `${item.marker} ${item.seriesName}: ${val.toLocaleString()} kWh<br/>`;
+                total += val;
+              });
+              res += `<strong>Tổng: ${total.toLocaleString()} kWh</strong>`;
+              return res;
+            },
+          },
+          legend: { show: false }, // Use shared legend
+          grid: { left: '5%', right: '5%', bottom: '10%', top: '15%', containLabel: true },
+          xAxis: {
+            type: 'category',
+            data: hours,
+            axisLabel: { color: '#ffffff' },
+          },
+          yAxis: {
+            type: 'value',
+            name: 'kWh',
+            axisLabel: { color: '#ffffff' },
+            nameTextStyle: {
+              fontSize: 13,
+              color: '#ffffff'
+            },
+          },
+          series: areas.map((area) => {
+            const areaData = areaMap.get(area)!;
+            return {
+              name: area,
+              type: 'bar',
+              stack: 'total',
+              data: hours.map(h => areaData.data.get(h) || 0),
+              itemStyle: { color: this.getAreaColor(area) },
+              emphasis: { focus: 'series' },
+            };
+          }),
+        };
+
+        this.updateChartInstance(this.dailyElectricUsageByAreaChartInstance, this.dailyElectricUsageByAreaChart, newOptions);
+        this.dailyElectricUsageChartOption = newOptions;
+        this.cdr.markForCheck();
+      },
+      error: (error) => console.error('Error loading daily electric usage by area:', error),
+    });
+  }
+
+  private addToAreaList(areaName: string) {
+    if (!this.areaList.find(a => a.name === areaName)) {
+      const color = this.colorPalette[this.areaList.length % this.colorPalette.length];
+      this.areaList.push({ name: areaName, color: color });
+      this.cdr.markForCheck();
+    }
+  }
+
+  private getAreaColor(areaName: string): string {
+    const area = this.areaList.find(a => a.name === areaName);
+    return area ? area.color : '#ccc';
+  }
+  //#endregion
+
+  //#region Biểu đồ công suất tiêu thụ điện theo tháng
+  private loadMonthlyElectricUsageByArea() {
+    if (!this.deviceId) return;
+    this.dashboardService.getMonthlyElectricUsageByArea(this.currentYear, this.monthOptionValue, this.dayOptionValue).subscribe({
+      next: (result) => {
+        const areaMap = new Map<string, { name: string; data: Map<string, number> }>();
+        const daysInMonth = new Date(this.currentYear, this.monthOptionValue, 0).getDate();
+        const days = Array.from({ length: daysInMonth }, (_, i) => `${i + 1}`);
+
+        result.forEach((item) => {
+          const areaName = item.AreaName || item.DeviceName || `Khu vực ${item.AreaId || 'Unknown'}`;
+          const dayLabel = item.XAxisValue.replace(/\D/g, '');
+
+          if (!areaMap.has(areaName)) {
+            areaMap.set(areaName, { name: areaName, data: new Map() });
+            this.addToAreaList(areaName);
+          }
+          areaMap.get(areaName)!.data.set(dayLabel, item.YAxisValue);
+        });
+
+        const areas = Array.from(areaMap.keys());
+        const newOptions = {
+          title: {
+            text: 'MONTHLY ELECTRICITY USAGE BY AREA',
+            left: 'center',
+            top: 10,
+            textStyle: { fontSize: 26, fontWeight: 'bold', color: '#ffffff' },
+          },
+          tooltip: {
+            trigger: 'axis',
+            axisPointer: { type: 'shadow' },
+            formatter: (params: any) => {
+              let res = `<strong>Ngày: ${params[0].axisValue}</strong><br/>`;
+              let total = 0;
+              params.forEach((item: any) => {
+                const val = Number(item.value) || 0;
+                res += `${item.marker} ${item.seriesName}: ${val.toLocaleString()} kWh<br/>`;
+                total += val;
+              });
+              res += `<strong>Tổng: ${total.toLocaleString()} kWh</strong>`;
+              return res;
+            },
+          },
+          legend: { show: false },
+          grid: { left: '5%', right: '5%', bottom: '10%', top: '15%', containLabel: true },
+          xAxis: {
+            type: 'category',
+            data: days,
+            axisLabel: { color: '#ffffff' },
+          },
+          yAxis: {
+            type: 'value',
+            name: 'kWh',
+            axisLabel: {
+              color: '#ffffff',
+              formatter: (value: number) => value.toLocaleString(),
+            },
+            nameTextStyle: {
+              fontSize: 13,
+              color: '#ffffff'
+            },
+          },
+          series: areas.map((area) => {
+            const areaData = areaMap.get(area)!;
+            return {
+              name: area,
+              type: 'bar',
+              stack: 'total',
+              data: days.map(d => areaData.data.get(d) || 0),
+              itemStyle: { color: this.getAreaColor(area) },
+              emphasis: { focus: 'series' },
+            };
+          }),
+        };
+
+        this.updateChartInstance(this.monthlyElectricUsageByAreaChartInstance, this.monthlyElectricUsageByAreaChart, newOptions);
+        this.monthlyElectricUsageChartOption = newOptions;
+        this.cdr.markForCheck();
+      },
+      error: (error) => console.error('Error loading monthly electric usage by area:', error),
+    });
+  }
+  //#endregion
+
+  //#region Biểu đồ công suất tiêu thụ điện theo năm
+  private loadYearlyElectricUsageByArea() {
+    if (!this.deviceId) return;
+    this.dashboardService.getYearlyElectricUsageByArea(this.currentYear, this.monthOptionValue, this.dayOptionValue).subscribe({
+      next: (result) => {
+        const areaMap = new Map<string, { name: string; data: Map<string, number> }>();
+        const months = Array.from({ length: 12 }, (_, i) => `T${i + 1}`);
+
+        result.forEach((item) => {
+          const areaName = item.AreaName || item.DeviceName || `Khu vực ${item.AreaId || 'Unknown'}`;
+          const monthLabel = `T${item.XAxisValue.replace(/\D/g, '')}`;
+
+          if (!areaMap.has(areaName)) {
+            areaMap.set(areaName, { name: areaName, data: new Map() });
+            this.addToAreaList(areaName);
+          }
+          areaMap.get(areaName)!.data.set(monthLabel, item.YAxisValue);
+        });
+
+        const areas = Array.from(areaMap.keys());
+        const newOptions = {
+          title: {
+            text: 'YEARLY ELECTRICITY USAGE BY AREA',
+            left: 'center',
+            top: 10,
+            textStyle: { fontSize: 26, fontWeight: 'bold', color: '#ffffff' },
+          },
+          tooltip: {
+            trigger: 'axis',
+            axisPointer: { type: 'shadow' },
+            formatter: (params: any) => {
+              let res = `<strong>Tháng: ${params[0].axisValue}</strong><br/>`;
+              let total = 0;
+              params.forEach((item: any) => {
+                const val = Number(item.value) || 0;
+                res += `${item.marker} ${item.seriesName}: ${val.toLocaleString()} kWh<br/>`;
+                total += val;
+              });
+              res += `<strong>Tổng: ${total.toLocaleString()} kWh</strong>`;
+              return res;
+            },
+          },
+          legend: { show: false },
+          grid: { left: '5%', right: '5%', bottom: '10%', top: '15%', containLabel: true },
+          xAxis: {
+            type: 'category',
+            data: months,
+            axisLabel: { color: '#ffffff' },
+          },
+          yAxis: {
+            type: 'value',
+            name: 'kWh',
+            axisLabel: {
+              color: '#ffffff',
+              formatter: (value: number) => value.toLocaleString(),
+            },
+            nameTextStyle: {
+              fontSize: 13,
+              color: '#ffffff'
+            },
+          },
+          series: areas.map((area) => {
+            const areaData = areaMap.get(area)!;
+            return {
+              name: area,
+              type: 'bar',
+              stack: 'total',
+              data: months.map(m => areaData.data.get(m) || 0),
+              itemStyle: { color: this.getAreaColor(area) },
+              emphasis: { focus: 'series' },
+            };
+          }),
+        };
+
+        this.updateChartInstance(this.yearlyElectricUsageByAreaChartInstance, this.yearlyElectricUsageByAreaChart, newOptions);
+        this.yearlyElectricUsageChartOption = newOptions;
+        this.cdr.markForCheck();
+      },
+      error: (error) => console.error('Error loading yearly electric usage by area:', error),
+    });
+  }
+  //#endregion
 
   //#region Chart Instance Management
   private updateChartInstance(
@@ -603,31 +945,40 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.electricUsageChartInstance = instance;
       } else if (elementRef === this.wasteOutputChart) {
         this.wasteOutputChartInstance = instance;
+      } else if (elementRef === this.dailyElectricUsageByAreaChart) {
+        this.dailyElectricUsageByAreaChartInstance = instance;
+      } else if (elementRef === this.monthlyElectricUsageByAreaChart) {
+        this.monthlyElectricUsageByAreaChartInstance = instance;
+      } else if (elementRef === this.yearlyElectricUsageByAreaChart) {
+        this.yearlyElectricUsageByAreaChartInstance = instance;
       }
     }
   }
 
   private cleanup() {
-    // Clear all refresh intervals
     this.clearRefreshIntervals();
 
-    // Dispose all chart instances
     [
       this.activePowerChartInstance,
       this.energyConsumptionInstance,
       this.electricUsageChartInstance,
       this.wasteOutputChartInstance,
+      this.dailyElectricUsageByAreaChartInstance,
+      this.monthlyElectricUsageByAreaChartInstance,
+      this.yearlyElectricUsageByAreaChartInstance,
     ].forEach((instance) => {
       if (instance && !instance.isDisposed()) {
         instance.dispose();
       }
     });
 
-    // Clear references
     this.activePowerChartInstance = null;
     this.energyConsumptionInstance = null;
     this.electricUsageChartInstance = null;
     this.wasteOutputChartInstance = null;
+    this.dailyElectricUsageByAreaChartInstance = null;
+    this.monthlyElectricUsageByAreaChartInstance = null;
+    this.yearlyElectricUsageByAreaChartInstance = null;
   }
   //endregion
 

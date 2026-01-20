@@ -6,6 +6,7 @@ import { EnergyConsumptionChartData } from '../../models/energyConsumptionChartD
 import { WasteOutputChartData } from '../../models/wasteOutputChartData';
 import { ElectricUsageChartData } from '../../models/electricUsageChartData';
 import { DetailCharts } from '../../models/detailCharts';
+import { AreaElectricityUsage } from '../../models/areaElectricityUsage';
 
 @Injectable({
   providedIn: 'root',
@@ -43,6 +44,28 @@ export class DashboardService extends BaseService {
   getDetailsWasteOutputData(year: number, month: number, deviceId: number) {
     return this.http.get<DetailCharts[]>(
       `${this.baseUrl}/dashboard/details-waste-output?year=${year}&month=${month}&device-id=${deviceId}`
+    );
+  }
+
+  // Area-based electricity usage endpoints
+  getDailyElectricUsageByArea(year: number, month: number, day: number) {
+    return this.http.get<AreaElectricityUsage[]>(
+      // `${this.baseUrl}/dashboard/daily-electric-usage-by-area`
+      `${this.baseUrl}/dashboard/energy-usage-by-area?year=${year}&month=${month}&day=${day}`
+    );
+  }
+
+  getMonthlyElectricUsageByArea(year: number, month: number, day: number) {
+    return this.http.get<AreaElectricityUsage[]>(
+      // `${this.baseUrl}/dashboard/monthly-electric-usage-by-area`
+      `${this.baseUrl}/dashboard/energy-usage-by-area?year=${year}&month=${month}&day=0`
+    );
+  }
+
+  getYearlyElectricUsageByArea(year: number, month: number, day: number) {
+    return this.http.get<AreaElectricityUsage[]>(
+      // `${this.baseUrl}/dashboard/yearly-electric-usage-by-area`
+      `${this.baseUrl}/dashboard/energy-usage-by-area?year=${year}&month=0&day=${day}`
     );
   }
 }
