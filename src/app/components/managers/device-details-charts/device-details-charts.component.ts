@@ -1,6 +1,10 @@
 import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NgxSelectModule } from 'ngx-select-ex';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 import { DashboardService } from '../../../services/managers/dashboard.service';
 import * as echarts from 'echarts/core';
 import { CanvasRenderer } from 'echarts/renderers';
@@ -32,7 +36,7 @@ echarts.use([
   selector: 'app-device-details-charts',
   templateUrl: './device-details-charts.component.html',
   styleUrls: ['./device-details-charts.component.css'],
-  imports: [NgxSelectModule, FormsModule, NgxEchartsDirective, CommonModule],
+  imports: [NzSelectModule, NzDatePickerModule, NzInputNumberModule, NzButtonModule, NzIconModule, FormsModule, NgxEchartsDirective, CommonModule],
   providers: [provideEchartsCore({ echarts })],
 })
 export class DeviceDetailsChartsComponent implements OnInit {
@@ -40,20 +44,22 @@ export class DeviceDetailsChartsComponent implements OnInit {
   yearValue = new Date().getFullYear();
   monthOptions: { value: number; label: string }[] = [
     { value: 0, label: 'Tất cả' },
-    { value: 1, label: '1' },
-    { value: 2, label: '2' },
-    { value: 3, label: '3' },
-    { value: 4, label: '4' },
-    { value: 5, label: '5' },
-    { value: 6, label: '6' },
-    { value: 7, label: '7' },
-    { value: 8, label: '8' },
-    { value: 9, label: '9' },
-    { value: 10, label: '10' },
-    { value: 11, label: '11' },
-    { value: 12, label: '12' },
+    { value: 1, label: 'Tháng 1' },
+    { value: 2, label: 'Tháng 2' },
+    { value: 3, label: 'Tháng 3' },
+    { value: 4, label: 'Tháng 4' },
+    { value: 5, label: 'Tháng 5' },
+    { value: 6, label: 'Tháng 6' },
+    { value: 7, label: 'Tháng 7' },
+    { value: 8, label: 'Tháng 8' },
+    { value: 9, label: 'Tháng 9' },
+    { value: 10, label: 'Tháng 10' },
+    { value: 11, label: 'Tháng 11' },
+    { value: 12, label: 'Tháng 12' },
   ];
   monthOptionValue = 0;
+  dayOptions: { label: string; value: number }[] = [];
+  dayOptionValue = 0;
   devices: Devices[] = [];
   isLoading = false;
 
@@ -74,6 +80,7 @@ export class DeviceDetailsChartsComponent implements OnInit {
 
   ngOnInit() {
     this.isLoading = true;
+    this.updateDayOptions();
     this.devicesService.getAll().subscribe({
       next: (data) => {
         this.devices = data;
@@ -87,6 +94,25 @@ export class DeviceDetailsChartsComponent implements OnInit {
       }
     });
   }
+
+  updateDayOptions() {
+    const daysInMonth = new Date(this.yearValue, this.monthOptionValue, 0).getDate();
+
+    this.dayOptions = [
+      { label: 'Tất cả', value: 0 },
+      ...Array.from({ length: daysInMonth }, (_, i) => ({
+        label: `Ngày ${i + 1}`,
+        value: i + 1
+      }))
+    ];
+
+    // Nếu giá trị hiện tại lớn hơn số ngày trong tháng → reset
+    if (this.dayOptionValue > daysInMonth) {
+      this.dayOptionValue = daysInMonth;
+    }
+  }
+
+
   loadData() {
     if (!this.deviceId) return;
     this.isLoading = true;
@@ -94,6 +120,7 @@ export class DeviceDetailsChartsComponent implements OnInit {
       powerRateData: this.dashboardService.getDetailsEnergyData(
         this.yearValue,
         this.monthOptionValue,
+        this.dayOptionValue,
         this.deviceId
       ),
       wasteOutputData: this.dashboardService.getDetailsWasteOutputData(
@@ -111,7 +138,7 @@ export class DeviceDetailsChartsComponent implements OnInit {
             textStyle: {
               fontSize: 26,
               fontWeight: 'bold',
-              color: '#ffffff',
+              color: '#333',
             },
           },
           tooltip: {
@@ -130,14 +157,18 @@ export class DeviceDetailsChartsComponent implements OnInit {
             type: 'category',
             data: result.powerRateData.map((d) => d.XAxisValue),
             axisLabel: {
-              color: '#ffffff',
+              color: '#333',
             },
           },
           yAxis: {
             type: 'value',
             name: 'kWh',
             axisLabel: {
-              color: '#ffffff',
+              color: '#333',
+            },
+            nameTextStyle: {
+              color: '#333',
+              fontSize: 13,
             },
           },
           series: [
@@ -161,7 +192,7 @@ export class DeviceDetailsChartsComponent implements OnInit {
             textStyle: {
               fontSize: 26,
               fontWeight: 'bold',
-              color: '#ffffff',
+              color: '#333',
             },
           },
           tooltip: {
@@ -178,14 +209,18 @@ export class DeviceDetailsChartsComponent implements OnInit {
             type: 'category',
             data: result.wasteOutputData.map((d) => d.XAxisValue),
             axisLabel: {
-              color: '#ffffff',
+              color: '#333',
             },
           },
           yAxis: {
             type: 'value',
             name: 'ppm',
             axisLabel: {
-              color: '#ffffff',
+              color: '#333',
+            },
+            nameTextStyle: {
+              color: '#333',
+              fontSize: 13,
             },
           },
           series: [

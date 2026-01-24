@@ -1,16 +1,16 @@
 <div class="card h-100" refreshable (refreshCallback)="onRefresh()">
   <div class="card-header">
     <div class="my-1 d-flex gap-1">
-      <button class="btn btn-primary-alt" (click)="openModal(content, false)">
-        <fa-icon [icon]="faPlus"></fa-icon>
-        <span class="ms-1">Thêm</span>
+      <button class="btn" (click)="openModal(content, false)" style="border: solid 1px #d8d9da;">
+        <fa-icon [icon]="faPlus" style="color: green;"></fa-icon>
+        <span class="ms-2" style="font-size: 12px; font-weight: 700; color: #334155;">Thêm</span>
       </button>
-      <button class="btn btn-success-alt" (click)="openModal(content, true)">
-        <fa-icon [icon]="faPenToSquare"></fa-icon>
-        <span class="ms-1">Sửa</span></button>
-      <button #btnDelete class="btn btn-danger-alt" (click)="onDelete()">
-        <fa-icon [icon]="faTrash"></fa-icon>
-        <span class="ms-1">Xóa</span></button>
+      <button class="btn" (click)="openModal(content, true)" style="border: solid 1px #d8d9da;">
+        <fa-icon [icon]="faPenToSquare" style="color: blue;"></fa-icon>
+        <span class="ms-2" style="font-size: 12px; font-weight: 700; color: #334155;">Sửa</span></button>
+      <button #btnDelete class="btn" (click)="onDelete()" style="border: solid 1px #d8d9da;">
+        <fa-icon [icon]="faTrash" style="color: red;"></fa-icon>
+        <span class="ms-2" style="font-size: 12px; font-weight: 700; color: #334155;">Xóa</span></button>
     </div>
   </div>
   <div class="card-body">
@@ -19,10 +19,9 @@
   </div>
 </div>
 <ng-template #content let-modal>
-  <div class="modal-header">
-    <h4 class="modal-title" id="modal-area">Thiết bị</h4>
-    <button type="button" class="btn-close btn-close-white" aria-label="Close"
-      (click)="modal.dismiss('Cross click')"></button>
+  <div class="modal-header bg-primary">
+    <h5 class="modal-title text-light" id="modal-area">Thiết bị</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
   </div>
   <div class="modal-body">
     <div class="d-flex flex-column h-100">
@@ -98,8 +97,7 @@
 <ng-template #paramValues let-modal>
   <div class="modal-header">
     <h4 class="modal-title" id="modal-area">Cài đặt</h4>
-    <button type="button" class="btn-close btn-close-white" aria-label="Close"
-      (click)="modal.dismiss('Cross click')"></button>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss('Cross click')"></button>
   </div>
   <div class="modal-body">
     <div class="row">

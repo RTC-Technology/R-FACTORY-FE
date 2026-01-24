@@ -1,16 +1,34 @@
-<div class="header d-flex mb-2">
-  <div class="d-flex">
-    <label class="me-2 text-light d-flex align-items-center px-3 fw-bold input-group-text">Năm</label>
-    <input type="number" class="form-control me-3" [(ngModel)]="yearValue" min="2000" max="2100">
-    <label class="me-2 text-light d-flex align-items-center px-3 fw-bold input-group-text">Tháng</label>
-    <ngx-select class="me-3" [items]="monthOptions" [optionValueField]="'value'" [optionTextField]="'label'"
-      [(ngModel)]="monthOptionValue" style="width: 120px;"></ngx-select>
-    <label class="me-2 text-light d-flex align-items-center px-3 fw-bold input-group-text">Khu vực</label>
-    <ngx-select class="me-3" [items]="devices" [optionValueField]="'Id'" [optionTextField]="'DeviceName'"
-      [(ngModel)]="deviceId"></ngx-select>
+<div class="header d-flex mb-2 align-items-center">
+  <div class="d-flex align-items-center">
+    <label class="px-1 fs-14">Năm:</label>
+    <nz-input-number [(ngModel)]="yearValue" [nzMin]="2000" [nzMax]="2100" [nzStep]="1" class="me-2 fs-14"
+      style="width: 80px;" (ngModelChange)="updateDayOptions()"></nz-input-number>
+
+    <label class="px-1 fs-14">Tháng:</label>
+    <nz-select class="me-2 fs-14" [(ngModel)]="monthOptionValue" (ngModelChange)="updateDayOptions()"
+      style="width: 120px;">
+      @for (option of monthOptions; track option.value) {
+      <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+      }
+    </nz-select>
+
+    <label class="px-1 fs-14">Ngày:</label>
+    <nz-select class="me-2 fs-14" [(ngModel)]="dayOptionValue" style="width: 120px;">
+      @for (option of dayOptions; track option.value) {
+      <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+      }
+    </nz-select>
+
+    <label class="px-1 fs-14">Khu vực:</label>
+    <nz-select class="me-2 fs-14" [(ngModel)]="deviceId" style="width: 250px;">
+      @for (device of devices; track device.Id) {
+      <nz-option [nzValue]="device.Id" [nzLabel]="device.DeviceName"></nz-option>
+      }
+    </nz-select>
   </div>
-  <button class="btn btn-primary d-flex align-items-center" (click)="loadData()">
-    <span class="ms-1"><i class="bi bi-search"></i> Tìm kiếm</span>
+  <button nz-button nzType="primary" class="d-flex align-items-center fs-14" (click)="loadData()">
+    <i nz-icon nzType="search"></i>
+    <span class="ms-1">Tìm kiếm</span>
   </button>
 </div>
 <div class="card position-relative">

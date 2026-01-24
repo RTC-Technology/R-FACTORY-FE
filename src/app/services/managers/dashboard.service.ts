@@ -26,6 +26,11 @@ export class DashboardService extends BaseService {
     );
   }
   getElectricUsageChartData() {
+    // return this.http.get<{
+    //   Item1: ElectricUsageChartData[];
+    //   Item2: ElectricUsageChartData[];
+    // }>(`${this.baseUrl}/dashboard/electric-usage-chart`);
+
     return this.http.get<{
       Item1: ElectricUsageChartData[];
       Item2: ElectricUsageChartData[];
@@ -36,9 +41,9 @@ export class DashboardService extends BaseService {
       `${this.baseUrl}/dashboard/waste-output-chart`
     );
   }
-  getDetailsEnergyData(year: number, month: number, deviceId: number) {
+  getDetailsEnergyData(year: number, month: number, day: number, deviceId: number) {
     return this.http.get<DetailCharts[]>(
-      `${this.baseUrl}/dashboard/details-energy?year=${year}&month=${month}&device-id=${deviceId}`
+      `${this.baseUrl}/dashboard/details-energy?year=${year}&month=${month}&day=${day}&device-id=${deviceId}`
     );
   }
   getDetailsWasteOutputData(year: number, month: number, deviceId: number) {
@@ -47,7 +52,6 @@ export class DashboardService extends BaseService {
     );
   }
 
-  // Area-based electricity usage endpoints
   getDailyElectricUsageByArea(year: number, month: number, day: number) {
     return this.http.get<AreaElectricityUsage[]>(
       // `${this.baseUrl}/dashboard/daily-electric-usage-by-area`
