@@ -12,6 +12,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgxSelectModule } from 'ngx-select-ex';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NgxEchartsDirective, provideEchartsCore } from 'ngx-echarts';
 import * as echarts from 'echarts/core';
 import { CanvasRenderer } from 'echarts/renderers';
@@ -63,7 +64,7 @@ interface OrgNode {
 
 @Component({
   selector: 'manager-dashboard',
-  imports: [CommonModule, NgxEchartsDirective, FFlowModule, FormsModule, NgxSelectModule],
+  imports: [CommonModule, NgxEchartsDirective, FFlowModule, FormsModule, NgxSelectModule, NzDatePickerModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -92,11 +93,24 @@ export class DashboardComponent implements OnInit, OnDestroy {
   readonly colorPalette = ['#FF7043', '#42A5F5', '#66BB6A', '#AB47BC', '#FFA726', '#5C5C8A', '#26C6DA', '#EF5350', '#8D6E63', '#78909C'];
 
   currentYear = new Date().getFullYear();
-  monthOptionValue = new Date().getMonth() + 1;
-  dayOptionValue = new Date().getDate();
+  currentMonth = new Date().getMonth() + 1;
+  currentDay = new Date().getDate();
 
+  yearlyChartDate = new Date();
+  monthlyChartDate = new Date();
+  dailyChartDate = new Date();
+
+  yearlyChartYear = this.currentYear;
+
+  monthlyChartYear = this.currentYear;
+  monthlyChartMonth = this.currentMonth;
+
+  dailyChartYear = this.currentYear;
+  dailyChartMonth = this.currentMonth;
+  dailyChartDay = this.currentDay;
+
+  // Options
   monthOptions = Array.from({ length: 12 }, (_, i) => ({ label: `Tháng ${i + 1}`, value: i + 1 }));
-  dayOptions: { label: string; value: number }[] = [];
 
   @ViewChild('orgChart') orgChart!: FFlowComponent;
   @ViewChild('activePowerChart', { static: false })
@@ -139,12 +153,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private devicesService: DevicesService,
     private cdr: ChangeDetectorRef
   ) { }
-  //end  //#region Life cycle
+
+  //#region Life cycle
   ngOnInit() {
     this.isLoading = true;
-    this.updateDayOptions();
-    this.initializeOrgChart();
 
+    // Initialize date objects
+    this.yearlyChartDate = new Date();
+    this.monthlyChartDate = new Date();
+    this.dailyChartDate = new Date();
+
+    this.initializeOrgChart();
+    this.setupAutoRefresh();
     this.devicesService.getAll().subscribe({
       next: (data) => {
         this.devices = data;
@@ -156,22 +176,41 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  updateDayOptions() {
-    const daysInMonth = new Date(this.currentYear, this.monthOptionValue, 0).getDate();
-    this.dayOptions = Array.from({ length: daysInMonth }, (_, i) => ({ label: `Ngày ${i + 1}`, value: i + 1 }));
-    if (this.dayOptionValue > daysInMonth) {
-      this.dayOptionValue = daysInMonth;
+  onYearlyChartInputChange(date: Date) {
+    this.yearlyChartDate = date;
+    if (date) {
+      this.yearlyChartYear = date.getFullYear();
+      this.loadYearlyElectricUsageByArea();
+    }
+  }
+
+  onMonthlyChartInputChange(date: Date) {
+    this.monthlyChartDate = date;
+    if (date) {
+      this.monthlyChartYear = date.getFullYear();
+      this.monthlyChartMonth = date.getMonth() + 1;
+      this.loadMonthlyElectricUsageByArea();
+    }
+  }
+
+  onDailyChartInputChange(date: Date) {
+    this.dailyChartDate = date;
+    if (date) {
+      this.dailyChartYear = date.getFullYear();
+      this.dailyChartMonth = date.getMonth() + 1;
+      this.dailyChartDay = date.getDate();
+      this.loadDailyElectricUsageByArea();
     }
   }
 
   loadAllChartData() {
     if (!this.deviceId) return;
     this.isLoading = true;
-    this.areaList = []; // Clear for new load
+    this.areaList = [];
     this.loadElectricUsageChart();
-    this.loadDailyElectricUsageByArea();
-    this.loadMonthlyElectricUsageByArea();
     this.loadYearlyElectricUsageByArea();
+    this.loadMonthlyElectricUsageByArea();
+    this.loadDailyElectricUsageByArea();
 
     setTimeout(() => {
       this.isLoading = false;
@@ -271,6 +310,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
   //#endregion
 
+  //#region Auto Refresh
   private setupAutoRefresh() {
     this.clearRefreshIntervals();
 
@@ -298,9 +338,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.refreshIntervals.forEach((interval) => clearInterval(interval));
     this.refreshIntervals = [];
   }
-  //endregion
+  //#endregion
 
-  //#region Chart Loading Methods
+  //#region Active Power and Energy Methods
   private loadActivePowerAndEnergyChart() {
     this.dashboardService.getEnergyConsumptionChartData().subscribe({
       next: (result) => {
@@ -317,7 +357,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           title: {
             text: 'ACTIVE POWER',
             textStyle: {
-              color: '#ffffff',
+              color: '#333',
               fontSize: 26,
             },
           },
@@ -331,7 +371,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             data: deviceNames,
             axisLabel: {
               show: true,
-              color: '#ffffff',
+              color: '#333',
               fontSize: 10,
               rotate: 45,
               interval: 0,
@@ -342,7 +382,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
               type: 'value',
               name: 'Công suất (kW)',
               axisLabel: {
-                color: '#ffffff',
+                color: '#333',
               },
             },
             {
@@ -353,7 +393,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
               position: 'right',
               axisLabel: {
                 formatter: '{value} %',
-                color: '#ffffff',
+                color: '#333',
               },
             },
           ],
@@ -427,7 +467,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             textStyle: {
               fontSize: 26,
               fontWeight: 'bold',
-              color: '#ffffff',
+              color: '#333',
             },
           },
           tooltip: {
@@ -438,7 +478,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             orient: 'horizontal',
             right: 10,
             top: 'bottom',
-            textStyle: { color: '#ffffff' },
+            textStyle: { color: '#333' },
           },
           series: [
             {
@@ -448,14 +488,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
               avoidLabelOverlap: false,
               itemStyle: {
                 borderRadius: 6,
-                borderColor: '#0b0c1a',
+                borderColor: '#ffffff',
                 borderWidth: 2,
               },
               label: {
                 show: true,
                 position: 'inner',
                 formatter: '{d}%',
-                color: '#fff',
+                color: '#333',
                 fontSize: 12,
                 fontWeight: 'bold',
               },
@@ -498,8 +538,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
   //#endregion
 
-  //#region Biểu đồ đường công suất tiêu thụ điện
-  private loadElectricUsageChart() {
+  //#region Electric Usage Chart Methods
+  public loadElectricUsageChart() {
     this.dashboardService.getElectricUsageChartData().subscribe({
       next: (result) => {
         const maxDays = Math.max(
@@ -514,9 +554,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
             left: 'center',
             top: 10,
             textStyle: {
-              fontSize: 26,
+              fontSize: 24,
               fontWeight: 'bold',
-              color: '#ffffff',
+              color: '#333',
             },
           },
           tooltip: {
@@ -524,31 +564,32 @@ export class DashboardComponent implements OnInit, OnDestroy {
           },
           legend: {
             data: ['Trong tháng', 'Tháng trước'],
-            top: 40,
-            textStyle: { color: '#ffffff' },
+            bottom: 0,
+            textStyle: { color: '#333' },
           },
           grid: {
             left: '5%',
             right: '5%',
             bottom: '10%',
+            top: '20%', // Increased top margin for filters
             containLabel: true,
           },
           xAxis: {
             type: 'category',
             data: days,
             axisLabel: {
-              color: '#ffffff',
+              color: '#333',
             },
           },
           yAxis: {
             type: 'value',
             name: 'kWh',
             axisLabel: {
-              color: '#ffffff',
+              color: '#333',
             },
             nameTextStyle: {
               fontSize: 13,
-              color: '#ffffff'
+              color: '#333'
             },
           },
           series: [
@@ -590,7 +631,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
   //#endregion
 
-  //#region Biểu đồ lượng khí thải
+  //#region Waste Output Methods
   private loadWasteOutputChart() {
     this.dashboardService.getWasteOutputChartData().subscribe({
       next: (result) => {
@@ -598,7 +639,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           title: {
             text: 'WASTE OUTPUT',
             textStyle: {
-              color: '#ffffff',
+              color: '#333',
               fontSize: 26,
             },
           },
@@ -608,7 +649,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           xAxis: {
             data: result.map((r) => r.Month),
             axisLabel: {
-              color: '#ffffff',
+              color: '#333',
               formatter: 'Tháng {value}',
             },
           },
@@ -621,7 +662,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
               padding: [0, 0, 0, 0],
             },
             axisLabel: {
-              color: '#ffffff',
+              color: '#333',
             },
           },
           series: [
@@ -651,10 +692,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
   //#endregion
 
-  //#region Biểu đồ công suất tiêu thụ điện theo ngày
-  private loadDailyElectricUsageByArea() {
+  //#region Daily Electric Usage By Area Methods
+  public loadDailyElectricUsageByArea() {
     if (!this.deviceId) return;
-    this.dashboardService.getDailyElectricUsageByArea(this.currentYear, this.monthOptionValue, this.dayOptionValue).subscribe({
+    this.dashboardService.getDailyElectricUsageByArea(this.dailyChartYear, this.dailyChartMonth, this.dailyChartDay).subscribe({
       next: (result) => {
         const areaMap = new Map<string, { name: string; data: Map<string, number> }>();
         const hours = Array.from({ length: 24 }, (_, i) => `${i}h`);
@@ -681,7 +722,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             text: 'DAILY ELECTRICITY USAGE BY AREA',
             left: 'center',
             top: 10,
-            textStyle: { fontSize: 26, fontWeight: 'bold', color: '#ffffff' },
+            textStyle: { fontSize: 24, fontWeight: 'bold', color: '#333' },
           },
           tooltip: {
             trigger: 'axis',
@@ -698,20 +739,25 @@ export class DashboardComponent implements OnInit, OnDestroy {
               return res;
             },
           },
-          legend: { show: false }, // Use shared legend
-          grid: { left: '5%', right: '5%', bottom: '10%', top: '15%', containLabel: true },
+          legend: {
+            show: true,
+            bottom: 0,
+            type: 'scroll',
+            textStyle: { color: '#333' }
+          },
+          grid: { left: '5%', right: '5%', bottom: '10%', top: '20%', containLabel: true },
           xAxis: {
             type: 'category',
             data: hours,
-            axisLabel: { color: '#ffffff' },
+            axisLabel: { color: '#333' },
           },
           yAxis: {
             type: 'value',
             name: 'kWh',
-            axisLabel: { color: '#ffffff' },
+            axisLabel: { color: '#333' },
             nameTextStyle: {
               fontSize: 13,
-              color: '#ffffff'
+              color: '#333'
             },
           },
           series: areas.map((area) => {
@@ -749,13 +795,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
   //#endregion
 
-  //#region Biểu đồ công suất tiêu thụ điện theo tháng
-  private loadMonthlyElectricUsageByArea() {
+  //#region Monthly Electric Usage By Area Methods
+  public loadMonthlyElectricUsageByArea() {
     if (!this.deviceId) return;
-    this.dashboardService.getMonthlyElectricUsageByArea(this.currentYear, this.monthOptionValue, this.dayOptionValue).subscribe({
+    this.dashboardService.getMonthlyElectricUsageByArea(this.monthlyChartYear, this.monthlyChartMonth, 1).subscribe({
       next: (result) => {
         const areaMap = new Map<string, { name: string; data: Map<string, number> }>();
-        const daysInMonth = new Date(this.currentYear, this.monthOptionValue, 0).getDate();
+        const daysInMonth = new Date(this.monthlyChartYear, this.monthlyChartMonth, 0).getDate();
         const days = Array.from({ length: daysInMonth }, (_, i) => `${i + 1}`);
 
         result.forEach((item) => {
@@ -775,7 +821,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             text: 'MONTHLY ELECTRICITY USAGE BY AREA',
             left: 'center',
             top: 10,
-            textStyle: { fontSize: 26, fontWeight: 'bold', color: '#ffffff' },
+            textStyle: { fontSize: 24, fontWeight: 'bold', color: '#333' },
           },
           tooltip: {
             trigger: 'axis',
@@ -792,23 +838,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
               return res;
             },
           },
-          legend: { show: false },
-          grid: { left: '5%', right: '5%', bottom: '10%', top: '15%', containLabel: true },
+          legend: {
+            show: true,
+            bottom: 0,
+            type: 'scroll',
+            textStyle: { color: '#333' }
+          },
+          grid: { left: '5%', right: '5%', bottom: '10%', top: '20%', containLabel: true },
           xAxis: {
             type: 'category',
             data: days,
-            axisLabel: { color: '#ffffff' },
+            axisLabel: { color: '#333' },
           },
           yAxis: {
             type: 'value',
             name: 'kWh',
             axisLabel: {
-              color: '#ffffff',
+              color: '#333',
               formatter: (value: number) => value.toLocaleString(),
             },
             nameTextStyle: {
               fontSize: 13,
-              color: '#ffffff'
+              color: '#333'
             },
           },
           series: areas.map((area) => {
@@ -833,10 +884,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
   //#endregion
 
-  //#region Biểu đồ công suất tiêu thụ điện theo năm
-  private loadYearlyElectricUsageByArea() {
+  //#region Yearly Electric Usage By Area Methods
+  public loadYearlyElectricUsageByArea() {
     if (!this.deviceId) return;
-    this.dashboardService.getYearlyElectricUsageByArea(this.currentYear, this.monthOptionValue, this.dayOptionValue).subscribe({
+    this.dashboardService.getYearlyElectricUsageByArea(this.yearlyChartYear, 1, 1).subscribe({
       next: (result) => {
         const areaMap = new Map<string, { name: string; data: Map<string, number> }>();
         const months = Array.from({ length: 12 }, (_, i) => `T${i + 1}`);
@@ -858,7 +909,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             text: 'YEARLY ELECTRICITY USAGE BY AREA',
             left: 'center',
             top: 10,
-            textStyle: { fontSize: 26, fontWeight: 'bold', color: '#ffffff' },
+            textStyle: { fontSize: 24, fontWeight: 'bold', color: '#333' },
           },
           tooltip: {
             trigger: 'axis',
@@ -875,23 +926,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
               return res;
             },
           },
-          legend: { show: false },
-          grid: { left: '5%', right: '5%', bottom: '10%', top: '15%', containLabel: true },
+          legend: {
+            show: true,
+            bottom: 0,
+            type: 'scroll',
+            textStyle: { color: '#333' }
+          },
+          grid: { left: '5%', right: '5%', bottom: '10%', top: '20%', containLabel: true },
           xAxis: {
             type: 'category',
             data: months,
-            axisLabel: { color: '#ffffff' },
+            axisLabel: { color: '#333' },
           },
           yAxis: {
             type: 'value',
             name: 'kWh',
             axisLabel: {
-              color: '#ffffff',
+              color: '#333',
               formatter: (value: number) => value.toLocaleString(),
             },
             nameTextStyle: {
               fontSize: 13,
-              color: '#ffffff'
+              color: '#333'
             },
           },
           series: areas.map((area) => {
@@ -923,20 +979,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
     options: any
   ) {
     if (instance && !instance.isDisposed()) {
-      // Update existing instance
       instance.setOption(options, {
-        notMerge: true, // Merge with existing options
-        lazyUpdate: true, // Better performance
+        notMerge: true,
+        lazyUpdate: true,
       });
     } else if (elementRef?.nativeElement) {
-      // Create new instance if it doesn't exist
       instance = echarts.getInstanceByDom(elementRef.nativeElement) || null;
       if (!instance) {
         instance = echarts.init(elementRef.nativeElement);
       }
       instance.setOption(options);
 
-      // Store the instance based on which chart it is
       if (elementRef === this.activePowerChart) {
         this.activePowerChartInstance = instance;
       } else if (elementRef === this.energyConsumption) {
@@ -957,7 +1010,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   private cleanup() {
     this.clearRefreshIntervals();
-
     [
       this.activePowerChartInstance,
       this.energyConsumptionInstance,
@@ -980,7 +1032,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.monthlyElectricUsageByAreaChartInstance = null;
     this.yearlyElectricUsageByAreaChartInstance = null;
   }
-  //endregion
+  //#endregion
 
   //#region Tab Management
   onAddTab(node: OrgNode, content: Type<any>) {
@@ -1013,5 +1065,5 @@ export class DashboardComponent implements OnInit, OnDestroy {
       link.classList.toggle('active', isActive);
     });
   }
-  //endregion
+  //#endregion
 }

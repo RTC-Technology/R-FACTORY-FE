@@ -1,35 +1,4 @@
-<div class="header d-flex mb-2 justify-content-between align-items-center p-2 border-bottom border-secondary">
-  <div class="d-flex align-items-center">
-    <label class="me-2 text-light d-flex align-items-center px-3 fw-bold input-group-text">Năm</label>
-    <input type="number" class="form-control me-3" [(ngModel)]="currentYear" (ngModelChange)="updateDayOptions()"
-      style="width: 90px; background: #2b2b2b; color: #fff; border: 1px solid #444;">
-
-    <label class="me-2 text-light d-flex align-items-center px-3 fw-bold input-group-text">Tháng</label>
-    <ngx-select class="me-3 custom-select" [items]="monthOptions" [optionValueField]="'value'"
-      [optionTextField]="'label'" [(ngModel)]="monthOptionValue" (ngModelChange)="updateDayOptions()"
-      style="width: 115px;"></ngx-select>
-
-    <label class="me-2 text-light d-flex align-items-center px-3 fw-bold input-group-text">Ngày</label>
-    <ngx-select class="me-3 custom-select" [items]="dayOptions" [optionValueField]="'value'" [optionTextField]="'label'"
-      [(ngModel)]="dayOptionValue" style="width: 115px;"></ngx-select>
-
-    <button class="btn btn-primary d-flex align-items-center ms-1" (click)="loadAllChartData()">
-      <i class="bi bi-search me-1"></i>Load Data
-    </button>
-  </div>
-
-  <!-- Shared Legend -->
-  <div class="shared-legend d-flex flex-wrap justify-content-center">
-    @for (area of areaList; track area.name) {
-    <div class="legend-item d-flex align-items-center me-3 mb-1">
-      <span class="legend-color me-1" [style.background-color]="area.color"></span>
-      <span class="legend-label text-light small">{{ area.name }}</span>
-    </div>
-    }
-  </div>
-</div>
-
-<div class="card position-relative bg-dark border-0">
+<div class="card-body p-2">
   @if (isLoading) {
   <div class="loading-overlay d-flex justify-content-center align-items-center">
     <div class="spinner-border text-primary" role="status">
@@ -37,25 +6,51 @@
     </div>
   </div>
   }
-
-  <div class="card-body p-2 h-100">
-    <div class="content-wrapper">
-      <div class="summary-section row">
-        <div class="col-6 py-2">
-          <div #electricUsageChart class="cell" echarts [options]="topCenterChartOption"></div>
-        </div>
-        <div class="col-6 py-2">
-          <div #yearlyElectricUsageByAreaChart class="cell shadow-sm" echarts
-            [options]="yearlyElectricUsageChartOption"></div>
+  <div class="content-wrapper">
+    <div class="summary-section row">
+      <!-- Electric Usage Chart (Monthly Comparison) -->
+      <div class="col-6 py-2">
+        <div class="cell position-relative">
+          <div #electricUsageChart class="h-100 w-100" echarts [options]="topCenterChartOption"></div>
         </div>
       </div>
-      <div class="chart-section row">
-        <div class="col-6 py-2">
-          <div #monthlyElectricUsageByAreaChart class="cell shadow-sm" echarts
-            [options]="monthlyElectricUsageChartOption"></div>
+
+      <!-- Yearly Electric Usage By Area -->
+      <div class="col-6 py-2">
+        <div class="cell position-relative">
+          <div class="chart-filters d-flex gap-2 position-absolute top-0 start-0 m-2" style="z-index: 10;">
+            <nz-date-picker nzMode="year" [(ngModel)]="yearlyChartDate"
+              (ngModelChange)="onYearlyChartInputChange($event)" nzSize="small" style="width: 80px;" nzPlaceHolder="Năm"
+              [nzAllowClear]="false"></nz-date-picker>
+          </div>
+          <div #yearlyElectricUsageByAreaChart class="h-100 w-100" echarts [options]="yearlyElectricUsageChartOption">
+          </div>
         </div>
-        <div class="col-6 py-2">
-          <div #dailyElectricUsageByAreaChart class="cell shadow-sm" echarts [options]="dailyElectricUsageChartOption">
+      </div>
+    </div>
+
+    <div class="chart-section row">
+      <!-- Monthly Electric Usage By Area -->
+      <div class="col-6 py-2">
+        <div class="cell position-relative">
+          <div class="chart-filters d-flex gap-2 position-absolute top-0 start-0 m-2" style="z-index: 10;">
+            <nz-date-picker nzMode="month" [(ngModel)]="monthlyChartDate"
+              (ngModelChange)="onMonthlyChartInputChange($event)" nzSize="small" nzFormat="MM/yyyy"
+              style="width: 120px;" [nzAllowClear]="false"></nz-date-picker>
+          </div>
+          <div #monthlyElectricUsageByAreaChart class="h-100 w-100" echarts [options]="monthlyElectricUsageChartOption">
+          </div>
+        </div>
+      </div>
+
+      <!-- Daily Electric Usage By Area -->
+      <div class="col-6 py-2">
+        <div class="cell position-relative">
+          <div class="chart-filters d-flex gap-2 position-absolute top-0 start-0 m-2" style="z-index: 10;">
+            <nz-date-picker [(ngModel)]="dailyChartDate" (ngModelChange)="onDailyChartInputChange($event)"
+              nzSize="small" nzFormat="dd/MM/yyyy" style="width: 120px;" [nzAllowClear]="false"></nz-date-picker>
+          </div>
+          <div #dailyElectricUsageByAreaChart class="h-100 w-100" echarts [options]="dailyElectricUsageChartOption">
           </div>
         </div>
       </div>
