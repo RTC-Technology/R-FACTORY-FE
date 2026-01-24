@@ -16,7 +16,10 @@
             "outputPath": "dist/r-factory-fe",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": ["zone.js", "@angular/localize/init"],
+            "polyfills": [
+              "zone.js",
+              "@angular/localize/init"
+            ],
             "tsConfig": "tsconfig.app.json",
             "assets": [
               {
@@ -38,7 +41,8 @@
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "node_modules/bootstrap-icons/font/bootstrap-icons.css",
               "@angular/material/prebuilt-themes/azure-blue.css",
-              "node_modules/tabulator-tables/dist/css/tabulator_site_dark.min.css",
+              "node_modules/tabulator-tables/dist/css/tabulator_simple.min.css",
+              "node_modules/ng-zorro-antd/ng-zorro-antd.css",
               "node_modules/ngx-toastr/toastr.css",
               "src/styles.css"
             ],
@@ -114,5 +118,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "c2ef24c0-ae15-4290-94a6-eda365251b41"
   }
 }

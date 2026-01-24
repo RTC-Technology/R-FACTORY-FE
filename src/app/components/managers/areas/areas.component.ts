@@ -5,6 +5,7 @@ import {
   TemplateRef,
   ViewChild,
 } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { TabulatorTableSingleComponent } from '../../_shared/tabulator-table/tabulator-tables.component';
 import { Areas } from '../../../models/areas';
 import { AreasService } from '../../../services/managers/areas.service';
@@ -22,25 +23,29 @@ import { FormsModule } from '@angular/forms';
 import { ToastHelper } from '../../../services/toastHelper.service';
 import { NgxSelectModule } from 'ngx-select-ex';
 import { TreeNode } from '../../../services/base.service';
+// import { Menubar } from 'primeng/menubar';
 
 @Component({
   selector: 'areas',
   templateUrl: './areas.component.html',
   styleUrls: ['./areas.component.css'],
   imports: [
+    CommonModule,
     TabulatorTableSingleComponent,
     FontAwesomeModule,
     RefreshableDirective,
     NgxSelectModule,
     FormsModule,
+    // Menubar
   ],
 })
 export class AreasComponent implements OnInit {
   //#region Properties
+  menuBars: any[] = [];
   areas: TreeNode[] = [];
   areasParent: Areas[] = [];
   columnNames: ColumnDefinition[] = [
-    { title: 'Mã', field: 'AreaCode', width : 200 },
+    { title: 'Mã', field: 'AreaCode', width: 200 },
     { title: 'Tên', field: 'AreaName', widthGrow: 1 },
   ];
   faPlus = faPlus;
@@ -59,7 +64,7 @@ export class AreasComponent implements OnInit {
     private areasService: AreasService,
     private modalService: NgbModal,
     private toastHelper: ToastHelper
-  ) {}
+  ) { }
   //#endregion
 
   //#region Life cycle
@@ -77,6 +82,36 @@ export class AreasComponent implements OnInit {
       },
     });
   }
+
+  initMenuBar() {
+    this.menuBars = [
+      {
+        label: 'Thêm',
+        icon: 'fa-solid fa-plus fa-lg text-success',
+        visible: true,
+        command: () => {
+          // this.openModal(content, false);
+        }
+      },
+      {
+        label: 'Sửa',
+        icon: 'fa-solid fa-pen-to-square fa-lg text-primary',
+        visible: true,
+        command: () => {
+          // this.openModal(content, true);
+        }
+      },
+      {
+        label: 'Xóa',
+        icon: 'fa-solid fa-trash fa-lg text-danger',
+        visible: true,
+        command: () => {
+          this.onDelete();
+        }
+      },
+    ];
+  }
+
   openModal(content: TemplateRef<any>, isEditing = false) {
     const selected = this.tblComp.getSelectedRow() as Areas;
     if (isEditing && !selected) return;
@@ -137,22 +172,22 @@ export class AreasComponent implements OnInit {
 
   //#region Utilities (reformat and build tree data)
   private buildTree(data: TreeNode[]) {
-      const map: { [key: number]: TreeNode } = {};
-      const roots: TreeNode[] = [];
+    const map: { [key: number]: TreeNode } = {};
+    const roots: TreeNode[] = [];
 
-      data.forEach((item) => {
-        map[item.Id] = { ...item, children: [] };
-      });
+    data.forEach((item) => {
+      map[item.Id] = { ...item, children: [] };
+    });
 
-      data.forEach((item) => {
-        if (item.ParentId && map[item.ParentId]) {
-          map[item.ParentId].children!.push(map[item.Id]);
-        } else {
-          roots.push(map[item.Id]);
-        }
-      });
+    data.forEach((item) => {
+      if (item.ParentId && map[item.ParentId]) {
+        map[item.ParentId].children!.push(map[item.Id]);
+      } else {
+        roots.push(map[item.Id]);
+      }
+    });
 
-      return roots;
-    }
+    return roots;
+  }
   //#endregion
 }

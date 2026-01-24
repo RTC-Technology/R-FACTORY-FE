@@ -20,9 +20,9 @@
 }
 
 .nav-tabs .nav-link {
-  border: 1px solid #3a3a3a !important;
-  background-color: #1a1a1a;
-  color: #e0e0e0;
+  border: 1px solid #dee2e6 !important;
+  background-color: #ddd;
+  color: #333;
   border-radius: 0.5rem 0.5rem 0 0;
   padding: 0.25rem 1rem;
   padding-right: 0.55rem;
@@ -31,13 +31,13 @@
 }
 
 .nav-tabs .nav-link:hover {
-  background-color: #2a2a2a;
-  color: #ffffff;
+  background-color: #ffffff;
+  color: #000000;
 }
 
 .nav-tabs .nav-link.active {
-  background-color: #3c3c3c;
-  color: #ffffff;
+  background-color: #ffffff;
+  color: #000000;
   font-weight: 500;
   border-bottom-color: transparent !important;
 }
@@ -55,7 +55,7 @@
 }
 
 .cdk-drag-preview {
-  background-color: #f8f9fa;
+  background-color: #ddd;
   color: black;
   border: 1px solid #dee2e6;
   padding: 6px 12px;

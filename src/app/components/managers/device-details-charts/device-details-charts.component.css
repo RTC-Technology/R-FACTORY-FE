@@ -23,12 +23,9 @@ table {
 
 }
 
-.header label {
-  background-color: #2DA4CB;
-}
-
-.header input {
-  width: 120px;
+.header input,
+.header nz-input-number {
+  width: 100px;
 }
 
 .card {
@@ -62,8 +59,9 @@ form .input {
   flex: 1 1 0;
 }
 
-ngx-select {
+nz-select {
   width: 250px;
+  font-size: 14px;
 }
 
 .loading-overlay {
@@ -76,4 +74,12 @@ ngx-select {
   z-index: 1000;
   border-radius: inherit;
   backdrop-filter: blur(2px);
+}
+
+.fs-14 {
+  font-size: 14px;
+}
+
+::ng-deep .ant-select {
+  font-size: 14px;
 }

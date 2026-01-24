@@ -1,66 +1,68 @@
-<mat-sidenav-container class="sidenav-container">
-  <mat-sidenav #drawer [mode]="isSideNavSideMode ? 'side' : 'over'" (openedChange)="onDrawerOpenChange($event)"
-    [opened]="isSideNavOpened">
-    <div class="d-flex flex-column align-items-center h-100 side-bar-menu">
-      <mat-toolbar>
-        <img class="rtc-logo" src="imgs/rtc-icon-white.png">
-        <span class="spacer"></span>
+<nz-layout class="sidenav-container">
+  <nz-sider class="menu-sidebar" nzWidth="260px" nzTheme="light" #drawer [nzCollapsed]="isCollapsed"
+    [nzCollapsedWidth]="0" [nzTrigger]="null" (nzCollapsedChange)="onDrawerOpenChange($event)">
+    <div class="d-flex flex-column align-items-center side-bar-menu">
+      <a class="d-flex align-items-center">
+        <img class="rtc-logo" src="imgs/rtc-icon.png">
+        <!-- <span class="spacer"></span>
         <button mat-icon-button (click)="onDrawerModeChange()">
           <mat-icon fontSet="material-symbols-outlined">{{isSideNavSideMode?'keep_off':'keep'}}</mat-icon>
-        </button>
-      </mat-toolbar>
-      <mat-nav-list class="w-100">
-        <a mat-list-item (click)="onAddTab('Dashboard', dashboard, true)" data-tab-name="Dashboard">
-          <img matListIcon src="imgs/icons/dashboard.png" class="icon me-2">
-          <span class="fw-medium text-light ms-1">Dashboard</span>
-        </a>
-        <a mat-list-item (click)="onAddTab('Tổng hợp', deviceDetail, true)" data-tab-name="Tổng hợp">
-          <img matListIcon src="imgs/icons/detail.png" class="icon me-2">
-          <span class="fw-medium text-light ms-1">Tổng hợp</span>
-        </a>
-        <a mat-list-item (click)="onAddTab('Khu vực', areas)" data-tab-name="Khu vực">
-          <img matListIcon src="imgs/icons/areas.png" class="icon me-2">
-          <span class="fw-medium text-light ms-1">Khu vực</span>
-        </a>
-        <a mat-list-item (click)="onAddTab('Thiết bị', devices)" data-tab-name="Thiết bị">
-          <img matListIcon src="imgs/icons/devices.png" class="icon me-2">
-          <span class="fw-medium text-light ms-1">Thiết bị</span>
-        </a>
-        <a mat-list-item (click)="onAddTab('Kiểu truyền thông', communication)" data-tab-name="Kiểu truyền thông">
-          <img matListIcon src="imgs/icons/communication.png" class="icon me-2">
-          <span class="fw-medium text-light ms-1">Kiểu truyền thông</span>
-        </a>
-      </mat-nav-list>
+        </button> -->
+      </a>
+      <ul nz-menu nzTheme="light" nzMode="inline" class="w-100">
+        <li nz-menu-item (click)="onAddTab('Dashboard', dashboard, true)" data-tab-name="Dashboard">
+          <img src="imgs/icons/dashboard.png" class="icon me-2" style="width: 24px; height: 24px;">
+          <span class="fw-bold ms-1">DASHBOARD</span>
+        </li>
+        <li nz-menu-item (click)="onAddTab('Tổng hợp', deviceDetail, true)" data-tab-name="Tổng hợp">
+          <img src="imgs/icons/detail.png" class="icon me-2" style="width: 24px; height: 24px;">
+          <span class="fw-bold ms-1">TỔNG HỢP</span>
+        </li>
+        <li nz-menu-item (click)="onAddTab('Khu vực', areas)" data-tab-name="Khu vực">
+          <img src="imgs/icons/areas.png" class="icon me-2" style="width: 24px; height: 24px;">
+          <span class="fw-bold ms-1">KHU VỰC</span>
+        </li>
+        <li nz-menu-item (click)="onAddTab('Thiết bị', devices)" data-tab-name="Thiết bị">
+          <img src="imgs/icons/devices.png" class="icon me-2" style="width: 24px; height: 24px;">
+          <span class="fw-bold ms-1">THIẾT BỊ</span>
+        </li>
+        <li nz-menu-item (click)="onAddTab('Kiểu truyền thông', communication)" data-tab-name="Kiểu truyền thông">
+          <img src="imgs/icons/communication.png" class="icon me-2" style="width: 24px; height: 24px;">
+          <span class="fw-bold ms-1">KIỂU TRUYỀN THÔNG</span>
+        </li>
+      </ul>
       <div class="spacer"></div>
       <div class="w-100" style="height: 52px;">
-        <button mat-icon-button [cdkMenuTriggerFor]="profileMenu" aria-label="Account options">
-          <mat-icon>account_circle</mat-icon>
+        <button nz-button nzType="text" nzShape="circle" nz-dropdown [nzDropdownMenu]="profileMenu"
+          nzPlacement="topLeft"
+          style="background: #dee2e6; border: none; margin-left: 10px; margin-right: 10px; margin-top: 6px; color: black; border-radius: 50%; height: 36px;">
+          <span nz-icon nzType="user" nzTheme="outline" style="font-size: 24px;"></span>
         </button>
       </div>
     </div>
-  </mat-sidenav>
+  </nz-sider>
 
-  <mat-sidenav-content>
+  <nz-content>
     <div class="content-wrapper">
-      <button #btnToggle class="toggle-btn" [class.open]="!isSideNavOpened"
-        (click)="drawer.toggle();btnToggle.classList.toggle('open', isSideNavOpened)">
+      <button #btnToggle class="toggle-btn" [class.open]="isCollapsed"
+        (click)="isCollapsed = !isCollapsed;btnToggle.classList.toggle('open', isCollapsed)">
       </button>
       <div class="content">
         <dynamic-tabs #tabContainer />
       </div>
     </div>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+  </nz-content>
+</nz-layout>
 
-<ng-template #profileMenu>
-  <div class="profile-menu" cdkMenu>
-    <button mat-menu-item class="profile-menu-item">
-      <mat-icon>person</mat-icon>
+<nz-dropdown-menu #profileMenu="nzDropdownMenu">
+  <ul nz-menu>
+    <li nz-menu-item>
+      <span nz-icon nzType="user" nzTheme="outline" class="me-2"></span>
       <span>Tài khoản</span>
-    </button>
-    <button mat-menu-item class="profile-menu-item" (click)="onLogOut()">
-      <mat-icon>logout</mat-icon>
+    </li>
+    <li nz-menu-item (click)="onLogOut()">
+      <span nz-icon nzType="logout" nzTheme="outline" class="me-2"></span>
       <span>Đăng xuất</span>
-    </button>
-  </div>
-</ng-template>
+    </li>
+  </ul>
+</nz-dropdown-menu>

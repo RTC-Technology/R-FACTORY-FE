@@ -17,6 +17,14 @@ import { Router } from '@angular/router';
 import { AreasComponent } from './areas/areas.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { DeviceDetailsChartsComponent } from './device-details-charts/device-details-charts.component';
+import { NzBreadCrumbModule } from 'ng-zorro-antd/breadcrumb';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzLayoutModule, NzSiderComponent } from 'ng-zorro-antd/layout';
+import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzIconService } from 'ng-zorro-antd/icon';
+import { UserOutline, LogoutOutline } from '@ant-design/icons-angular/icons';
+
 @Component({
   selector: 'app-managers',
   imports: [
@@ -26,9 +34,12 @@ import { DeviceDetailsChartsComponent } from './device-details-charts/device-det
     MatIconModule,
     MatListModule,
     MatButtonModule,
-    CdkMenu,
-    CdkMenuTrigger,
     DynamicTabsComponent,
+    NzBreadCrumbModule,
+    NzIconModule,
+    NzLayoutModule,
+    NzMenuModule,
+    NzDropDownModule,
   ],
   templateUrl: './managers.component.html',
   styleUrl: './managers.component.css',
@@ -37,6 +48,7 @@ export class ManagersComponent implements OnInit, AfterViewInit {
   //#region Properties
   isSideNavSideMode = false;
   isSideNavOpened = false;
+  isCollapsed = false;
   dashboard = DashboardComponent;
   deviceDetail = DeviceDetailsChartsComponent;
   areas = AreasComponent;
@@ -44,13 +56,15 @@ export class ManagersComponent implements OnInit, AfterViewInit {
   communication = CommunicationComponent;
   @ViewChild('tabContainer') tabContainer!: DynamicTabsComponent<any>;
   @ViewChild('drawer', { static: false })
-  drawer!: MatSidenav;
+  drawer!: NzSiderComponent;
   @ViewChild('btnToggle', { static: false })
   btnToggle!: ElementRef;
   //#endregion
 
   //#region Constructor
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(private auth: AuthService, private router: Router, private iconService: NzIconService) {
+    this.iconService.addIcon(UserOutline, LogoutOutline);
+  }
   //#endregion
 
   //#region Life cycle
@@ -66,9 +80,9 @@ export class ManagersComponent implements OnInit, AfterViewInit {
   }
   //#endregion
 
-  onDrawerOpenChange(open: boolean) {
-    this.isSideNavOpened = open;
-    localStorage.setItem('is_sidenav_opened', open.toString());
+  onDrawerOpenChange(collapsed: boolean) {
+    this.isCollapsed = collapsed;
+    localStorage.setItem('is_sidenav_opened', (!collapsed).toString());
   }
   onDrawerModeChange() {
     this.isSideNavSideMode = !this.isSideNavSideMode;
@@ -103,9 +117,9 @@ export class ManagersComponent implements OnInit, AfterViewInit {
       link.classList.toggle('active', isActive);
     });
 
-    if (!this.isSideNavSideMode && this.isSideNavOpened) {
-      this.isSideNavOpened = false;
-    }
+    // if (!this.isSideNavSideMode && !this.isCollapsed) {
+    //   this.isCollapsed = true;
+    // }
   }
 
   onLogOut() {
@@ -119,3 +133,4 @@ export class ManagersComponent implements OnInit, AfterViewInit {
       .add(() => this.router.navigateByUrl('/login'));
   }
 }
+

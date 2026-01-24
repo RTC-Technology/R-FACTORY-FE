@@ -23,13 +23,12 @@ import {
   template: `
     <div
       #tableContainer
-      class="table-bordered border-primary tabulator-table"
+      class="table-bordered tabulator-table"
     ></div>
   `,
 })
 export class TabulatorTableSingleComponent
-  implements AfterViewInit, OnChanges, OnDestroy
-{
+  implements AfterViewInit, OnChanges, OnDestroy {
   //#region Properties
   @Input() tableData: any[] = [];
   @Input() selectableRow = true;

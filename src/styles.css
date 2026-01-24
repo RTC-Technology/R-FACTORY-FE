@@ -8,4 +8,24 @@ body {
 body {
   margin: 0;
   font-family: "Open Sans", "Helvetica Neue", sans-serif;
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.tabulator .tabulator-header .tabulator-col {
+  justify-content: center !important;
+  align-items: center !important;
+  background-color: #3066c5 !important;
+  color: #ffffff !important;
+  font-weight: bold !important;
+  font-size: 14px !important;
+  text-align: center !important;
+}
+
+.tabulator {
+  border: 1px solid #dee2e6 !important;
+}
+
+.tabulator-cell {
+  border: 1px solid #dee2e6 !important;
 }
