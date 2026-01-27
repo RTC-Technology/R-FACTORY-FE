@@ -548,6 +548,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
         );
 
         const days = Array.from({ length: maxDays }, (_, i) => i + 1);
+        const data1Map = new Map(result.Item1.map((x) => [x.DayValue, x.LogValue]));
+        const data2Map = new Map(result.Item2.map((x) => [x.DayValue, x.LogValue]));
+
         const newOptions = {
           title: {
             text: 'ELECTRIC USAGE',
@@ -597,7 +600,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
               name: 'Trong tháng',
               type: 'line',
               smooth: true,
-              data: result.Item1.map((item) => item.LogValue),
+              data: days.map((day) => data1Map.get(day) ?? 0),
               symbol: 'circle',
               symbolSize: 6,
               itemStyle: { color: '#4CAF50' },
@@ -607,7 +610,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
               name: 'Tháng trước',
               type: 'line',
               smooth: true,
-              data: result.Item2.map((item) => item.LogValue),
+              data: days.map((day) => data2Map.get(day) ?? 0),
               symbol: 'circle',
               symbolSize: 6,
               itemStyle: { color: '#42A5F5' },
@@ -749,7 +752,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
           xAxis: {
             type: 'category',
             data: hours,
-            axisLabel: { color: '#333' },
+            axisLabel: {
+              color: '#333',
+              interval: 0
+            },
           },
           yAxis: {
             type: 'value',
