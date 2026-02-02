@@ -106,10 +106,19 @@ export class DeviceDetailsChartsComponent implements OnInit {
       }))
     ];
 
-    // Nếu giá trị hiện tại lớn hơn số ngày trong tháng → reset
     if (this.dayOptionValue > daysInMonth) {
       this.dayOptionValue = daysInMonth;
     }
+
+    this.loadData();
+  }
+
+  onDayChange() {
+    this.loadData();
+  }
+
+  onDeviceChange() {
+    this.loadData();
   }
 
 
@@ -143,9 +152,12 @@ export class DeviceDetailsChartsComponent implements OnInit {
           },
           tooltip: {
             trigger: 'axis',
-            formatter: (p: any) =>
-              `${p[0].axisValue}<br/>Công suất: ${p[0].data} kWh`,
+            formatter: (p: any) => {
+              const value = Number(p[0].data);
+              return `${p[0].axisValue}<br/>Công suất: ${value % 1 === 0 ? value.toFixed(0) : value} kWh`;
+            }
           },
+
           grid: {
             left: '10%',
             right: '10%',

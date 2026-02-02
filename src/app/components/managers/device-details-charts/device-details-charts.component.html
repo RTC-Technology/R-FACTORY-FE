@@ -13,23 +13,23 @@
     </nz-select>
 
     <label class="px-1 fs-14">Ngày:</label>
-    <nz-select class="me-2 fs-14" [(ngModel)]="dayOptionValue" style="width: 120px;">
+    <nz-select class="me-2 fs-14" [(ngModel)]="dayOptionValue" (ngModelChange)="onDayChange()" style="width: 120px;">
       @for (option of dayOptions; track option.value) {
       <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
       }
     </nz-select>
 
     <label class="px-1 fs-14">Khu vực:</label>
-    <nz-select class="me-2 fs-14" [(ngModel)]="deviceId" style="width: 250px;">
+    <nz-select class="me-2 fs-14" [(ngModel)]="deviceId" (ngModelChange)="onDeviceChange()" style="width: 250px;">
       @for (device of devices; track device.Id) {
       <nz-option [nzValue]="device.Id" [nzLabel]="device.DeviceName"></nz-option>
       }
     </nz-select>
   </div>
-  <button nz-button nzType="primary" class="d-flex align-items-center fs-14" (click)="loadData()">
+  <!-- <button nz-button nzType="primary" class="d-flex align-items-center fs-14" (click)="loadData()">
     <i nz-icon nzType="search"></i>
     <span class="ms-1">Tìm kiếm</span>
-  </button>
+  </button> -->
 </div>
 <div class="card position-relative">
   @if (isLoading) {
