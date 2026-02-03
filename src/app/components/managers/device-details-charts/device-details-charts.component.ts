@@ -19,7 +19,8 @@ import {
 import { NgxEchartsDirective, provideEchartsCore } from 'ngx-echarts';
 import { Devices } from '../../../models/devices';
 import { DevicesService } from '../../../services/managers/devices.service';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 
 echarts.use([
@@ -40,39 +41,26 @@ echarts.use([
   providers: [provideEchartsCore({ echarts })],
 })
 export class DeviceDetailsChartsComponent implements OnInit {
-  @Input() deviceId!: number;
-  yearValue = new Date().getFullYear();
-  monthOptions: { value: number; label: string }[] = [
-    { value: 0, label: 'Tất cả' },
-    { value: 1, label: 'Tháng 1' },
-    { value: 2, label: 'Tháng 2' },
-    { value: 3, label: 'Tháng 3' },
-    { value: 4, label: 'Tháng 4' },
-    { value: 5, label: 'Tháng 5' },
-    { value: 6, label: 'Tháng 6' },
-    { value: 7, label: 'Tháng 7' },
-    { value: 8, label: 'Tháng 8' },
-    { value: 9, label: 'Tháng 9' },
-    { value: 10, label: 'Tháng 10' },
-    { value: 11, label: 'Tháng 11' },
-    { value: 12, label: 'Tháng 12' },
-  ];
-  monthOptionValue = 0;
-  dayOptions: { label: string; value: number }[] = [];
-  dayOptionValue = 0;
+  @Input() deviceId: number = 5;
   devices: Devices[] = [];
   isLoading = false;
 
-  @ViewChild('powerRate', { static: false })
-  powerRate!: ElementRef;
-  powerRateInstance: echarts.ECharts | undefined | null = undefined;
-  powerRateChartOption = {};
-  @ViewChild('wasteOutput', { static: false })
-  wasteOutput!: ElementRef;
-  wasteOutputInstance: echarts.ECharts | undefined | null = undefined;
-  wasteOutputChartOption = {};
+  // Date filters for each chart
+  monthlyChartDate: Date = new Date();
+  dailyChartDate: Date = new Date();
+
+  @ViewChild('monthlyPowerChart', { static: false })
+  monthlyPowerChart!: ElementRef;
+  monthlyPowerChartInstance: echarts.ECharts | undefined | null = undefined;
+  monthlyPowerChartOption = {};
+
+  @ViewChild('dailyPowerChart', { static: false })
+  dailyPowerChart!: ElementRef;
+  dailyPowerChartInstance: echarts.ECharts | undefined | null = undefined;
+  dailyPowerChartOption = {};
 
   @Input() dynamicTabs!: any;
+
   constructor(
     private dashboardService: DashboardService,
     private devicesService: DevicesService
@@ -80,7 +68,6 @@ export class DeviceDetailsChartsComponent implements OnInit {
 
   ngOnInit() {
     this.isLoading = true;
-    this.updateDayOptions();
     this.devicesService.getAll().subscribe({
       next: (data) => {
         this.devices = data;
@@ -95,53 +82,77 @@ export class DeviceDetailsChartsComponent implements OnInit {
     });
   }
 
-  updateDayOptions() {
-    const daysInMonth = new Date(this.yearValue, this.monthOptionValue, 0).getDate();
-
-    this.dayOptions = [
-      { label: 'Tất cả', value: 0 },
-      ...Array.from({ length: daysInMonth }, (_, i) => ({
-        label: `Ngày ${i + 1}`,
-        value: i + 1
-      }))
-    ];
-
-    if (this.dayOptionValue > daysInMonth) {
-      this.dayOptionValue = daysInMonth;
-    }
-
-    this.loadData();
+  onMonthlyChartInputChange(date: Date) {
+    this.monthlyChartDate = date;
+    this.loadMonthlyChart();
   }
 
-  onDayChange() {
-    this.loadData();
+  onDailyChartInputChange(date: Date) {
+    this.dailyChartDate = date;
+    this.loadDailyChart();
   }
-
-  onDeviceChange() {
-    this.loadData();
-  }
-
 
   loadData() {
     if (!this.deviceId) return;
     this.isLoading = true;
+
     forkJoin({
-      powerRateData: this.dashboardService.getDetailsEnergyData(
-        this.yearValue,
-        this.monthOptionValue,
-        this.dayOptionValue,
-        this.deviceId
-      ),
-      wasteOutputData: this.dashboardService.getDetailsWasteOutputData(
-        this.yearValue,
-        this.monthOptionValue,
-        this.deviceId
-      )
+      monthlyData: this.loadMonthlyChartData(),
+      dailyData: this.loadDailyChartData()
     }).subscribe({
-      next: (result) => {
-        this.powerRateChartOption = {
+      next: () => {
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.isLoading = false;
+      }
+    });
+  }
+
+  loadMonthlyChart() {
+    if (!this.deviceId) return;
+    this.isLoading = true;
+
+    this.loadMonthlyChartData().subscribe({
+      next: () => {
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.isLoading = false;
+      }
+    });
+  }
+
+  loadDailyChart() {
+    if (!this.deviceId) return;
+    this.isLoading = true;
+
+    this.loadDailyChartData().subscribe({
+      next: () => {
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.isLoading = false;
+      }
+    });
+  }
+
+  private loadMonthlyChartData() {
+    const year = this.monthlyChartDate.getFullYear();
+
+    return this.dashboardService.getDetailsEnergyData(
+      year,
+      0,
+      0,
+      this.deviceId
+    ).pipe(
+      map((data: any) => {
+        this.monthlyPowerChartOption = {
           title: {
-            text: 'Công suất tiêu thụ',
+            text: 'Công suất tiêu thụ theo tháng',
             left: 'center',
             top: 10,
             textStyle: {
@@ -154,10 +165,9 @@ export class DeviceDetailsChartsComponent implements OnInit {
             trigger: 'axis',
             formatter: (p: any) => {
               const value = Number(p[0].data);
-              return `${p[0].axisValue}<br/>Công suất: ${value % 1 === 0 ? value.toFixed(0) : value} kWh`;
+              return `${p[0].axisValue}<br/>Công suất: ${value.toFixed(2)} kWh`;
             }
           },
-
           grid: {
             left: '10%',
             right: '10%',
@@ -167,7 +177,7 @@ export class DeviceDetailsChartsComponent implements OnInit {
           },
           xAxis: {
             type: 'category',
-            data: result.powerRateData.map((d) => d.XAxisValue),
+            data: data.map((d: any) => d.XAxisValue),
             axisLabel: {
               color: '#333',
             },
@@ -187,7 +197,7 @@ export class DeviceDetailsChartsComponent implements OnInit {
             {
               name: 'Công suất tiêu thụ',
               type: 'bar',
-              data: result.powerRateData.map((d) => d.YAxisValue),
+              data: data.map((d: any) => d.YAxisValue),
               itemStyle: { color: '#32cb37ff' },
             },
           ],
@@ -195,10 +205,25 @@ export class DeviceDetailsChartsComponent implements OnInit {
             fontFamily: 'Open Sans',
           },
         };
+        return data;
+      })
+    );
+  }
 
-        this.wasteOutputChartOption = {
+  private loadDailyChartData() {
+    const year = this.dailyChartDate.getFullYear();
+    const month = this.dailyChartDate.getMonth() + 1;
+
+    return this.dashboardService.getDetailsEnergyData(
+      year,
+      month,
+      0,
+      this.deviceId
+    ).pipe(
+      map((data: any) => {
+        this.dailyPowerChartOption = {
           title: {
-            text: 'Khí thải',
+            text: 'Công suất tiêu thụ theo ngày',
             left: 'center',
             top: 10,
             textStyle: {
@@ -209,6 +234,10 @@ export class DeviceDetailsChartsComponent implements OnInit {
           },
           tooltip: {
             trigger: 'axis',
+            formatter: (p: any) => {
+              const value = Number(p[0].data);
+              return `${p[0].axisValue}<br/>Công suất: ${value.toFixed(2)} kWh`;
+            }
           },
           grid: {
             left: '10%',
@@ -219,14 +248,14 @@ export class DeviceDetailsChartsComponent implements OnInit {
           },
           xAxis: {
             type: 'category',
-            data: result.wasteOutputData.map((d) => d.XAxisValue),
+            data: data.map((d: any) => d.XAxisValue),
             axisLabel: {
               color: '#333',
             },
           },
           yAxis: {
             type: 'value',
-            name: 'ppm',
+            name: 'kWh',
             axisLabel: {
               color: '#333',
             },
@@ -237,22 +266,18 @@ export class DeviceDetailsChartsComponent implements OnInit {
           },
           series: [
             {
-              name: 'Khí thải',
+              name: 'Công suất tiêu thụ',
               type: 'bar',
-              data: result.wasteOutputData.map((d) => d.YAxisValue),
-              itemStyle: { color: '#c02323ff' },
+              data: data.map((d: any) => d.YAxisValue),
+              itemStyle: { color: '#1890ff' },
             },
           ],
           textStyle: {
             fontFamily: 'Open Sans',
           },
         };
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error(err);
-        this.isLoading = false;
-      }
-    });
+        return data;
+      })
+    );
   }
 }
