@@ -10,7 +10,7 @@ export const routes: Routes = [
     canActivate: [LoginGuard],
     loadComponent: () => {
       return import('./components/auth/login/login.component').then(
-        (c) => c.LoginComponent
+        (c) => c.LoginComponent,
       );
     },
   },
@@ -18,7 +18,7 @@ export const routes: Routes = [
   {
     path: 'web/managers',
     redirectTo: 'managers',
-    pathMatch: 'full'
+    pathMatch: 'full',
   },
   {
     path: 'managers',
@@ -26,7 +26,17 @@ export const routes: Routes = [
     data: { role: 'managers' },
     loadComponent: () => {
       return import('./components/managers/managers.component').then(
-        (c) => c.ManagersComponent
+        (c) => c.ManagersComponent,
+      );
+    },
+  },
+  {
+    path: 'users',
+    canActivate: [AuthGuard],
+    data: { role: 'users' },
+    loadComponent: () => {
+      return import('./components/users/users.component').then(
+        (c) => c.UsersComponent,
       );
     },
   },
@@ -34,7 +44,7 @@ export const routes: Routes = [
     path: '**',
     loadComponent: () =>
       import('./components/_shared/not-found/not-found.component').then(
-        (c) => c.NotFoundComponent
+        (c) => c.NotFoundComponent,
       ),
   },
 ];

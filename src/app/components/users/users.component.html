@@ -1,3 +1,56 @@
-<p>
-  users works!
-</p>
+<nz-layout class="sidenav-container">
+  <nz-sider class="menu-sidebar" nzWidth="260px" nzTheme="light" #drawer [nzCollapsed]="isCollapsed"
+    [nzCollapsedWidth]="0" [nzTrigger]="null" (nzCollapsedChange)="onDrawerOpenChange($event)">
+    <div class="d-flex flex-column align-items-center side-bar-menu">
+      <a class="d-flex align-items-center">
+        <img class="rtc-logo" src="imgs/rtc-icon.png">
+        <!-- <span class="spacer"></span>
+        <button mat-icon-button (click)="onDrawerModeChange()">
+          <mat-icon fontSet="material-symbols-outlined">{{isSideNavSideMode?'keep_off':'keep'}}</mat-icon>
+        </button> -->
+      </a>
+      <ul nz-menu nzTheme="light" nzMode="inline" class="w-100">
+        <li nz-menu-item (click)="onAddTab('Dashboard', dashboard, true)" data-tab-name="Dashboard">
+          <img src="imgs/icons/dashboard.png" class="icon me-2" style="width: 24px; height: 24px;">
+          <span class="fw-bold ms-1">DASHBOARD</span>
+        </li>
+        <li nz-menu-item (click)="onAddTab('Tổng hợp', deviceDetail, true)" data-tab-name="Tổng hợp">
+          <img src="imgs/icons/detail.png" class="icon me-2" style="width: 24px; height: 24px;">
+          <span class="fw-bold ms-1">TỔNG HỢP</span>
+        </li>
+      </ul>
+      <div class="spacer"></div>
+      <div class="w-100" style="height: 52px;">
+        <button nz-button nzType="text" nzShape="circle" nz-dropdown [nzDropdownMenu]="profileMenu"
+          nzPlacement="topLeft"
+          style="background: #dee2e6; border: none; margin-left: 10px; margin-right: 10px; margin-top: 6px; color: black; border-radius: 50%; height: 36px;">
+          <span nz-icon nzType="user" nzTheme="outline" style="font-size: 24px;"></span>
+        </button>
+      </div>
+    </div>
+  </nz-sider>
+
+  <nz-content>
+    <div class="content-wrapper">
+      <button #btnToggle class="toggle-btn" [class.open]="isCollapsed"
+        (click)="isCollapsed = !isCollapsed;btnToggle.classList.toggle('open', isCollapsed)">
+      </button>
+      <div class="content">
+        <dynamic-tabs #tabContainer />
+      </div>
+    </div>
+  </nz-content>
+</nz-layout>
+
+<nz-dropdown-menu #profileMenu="nzDropdownMenu">
+  <ul nz-menu>
+    <li nz-menu-item>
+      <span nz-icon nzType="user" nzTheme="outline" class="me-2"></span>
+      <span>Tài khoản</span>
+    </li>
+    <li nz-menu-item (click)="onLogOut()">
+      <span nz-icon nzType="logout" nzTheme="outline" class="me-2"></span>
+      <span>Đăng xuất</span>
+    </li>
+  </ul>
+</nz-dropdown-menu>

@@ -1,0 +1,217 @@
+.sidenav-container {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  overflow: hidden;
+}
+
+mat-sidenav-content>mat-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  padding: 0;
+}
+
+mat-sidenav-content>mat-toolbar>div {
+  height: 100%;
+  width: 100%;
+  box-shadow: 15px 9px 25px 0 rgba(0, 0, 0, 0.1);
+  padding: 0 20px;
+}
+
+mat-nav-list>a.active {
+  background-color: #3c3c3c;
+}
+
+.content {
+  padding: 12px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  background-color: #ffffff;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.app-title {
+  font-weight: bold;
+}
+
+mat-sidenav mat-toolbar {
+  padding-left: 10px !important;
+  padding-right: 5px !important;
+}
+
+mat-sidenav {
+  /* width: fit-content;
+  min-width: 72px;
+  max-width: 380px; */
+  max-width: 230px;
+  box-sizing: border-box;
+  border-right: 1px solid rgba(0, 0, 0, 0.193);
+  box-shadow: 3px 1px 5px 0 rgba(0, 0, 0, 0.1);
+  border-radius: 0%;
+}
+
+.sidenav-header {
+  font-weight: bold;
+}
+
+.rtc-logo {
+  display: block;
+  height: 100%;
+}
+
+.profile-menu {
+  display: inline-flex;
+  flex-direction: column;
+  min-width: 180px;
+  max-width: 280px;
+  background-color: #ffffff;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  padding: 6px 0;
+}
+
+.profile-menu-item {
+  background-color: transparent;
+  cursor: pointer;
+  border: none;
+
+  user-select: none;
+  min-width: 64px;
+  line-height: 36px;
+  padding: 0 16px;
+
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  flex: 1;
+}
+
+.profile-menu-item:hover {
+  background-color: #f8f9fa;
+}
+
+.profile-menu-item:active {
+  background-color: rgb(218, 212, 212);
+}
+
+.content {
+  height: calc(100% - 0px);
+  width: 100%;
+}
+
+.content-wrapper {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.toggle-btn {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 12px;
+  height: 32px;
+  border: 1px solid #ccc;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+  background-color: #ffffff;
+  cursor: pointer;
+  overflow: hidden;
+  transition: width 0.2s ease, height 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 3px;
+}
+
+.toggle-btn::after {
+  content: '◀';
+  color: #000000;
+  transition: font-size 0.2s ease;
+  line-height: 1;
+  font-size: 8px;
+}
+
+.toggle-btn.open::after {
+  content: '▶';
+}
+
+.toggle-btn:hover {
+  width: 32px;
+  height: 32px;
+}
+
+.toggle-btn:hover::after {
+  font-size: 20px;
+}
+
+.side-bar-menu {
+  background-color: #ffffff;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+mat-toolbar {
+  background-color: #ffffff;
+}
+
+.mdc-list-item {
+  border-radius: 0 !important;
+}
+
+.menu-sidebar {
+  position: relative;
+  z-index: 10;
+  height: 100%;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+li {
+  list-style-type: none;
+}
+
+.layout {
+  min-height: 100vh;
+}
+
+nz-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.ant-menu.ant-menu-dark {
+  background-color: #ffffff;
+}
+
+.icon {
+  width: 14px;
+  height: 14px;
+}
+
+::ng-deep .ant-menu-dark .ant-menu-item:hover span {
+  color: #f75e38 !important;
+}
+
+/* ::ng-deep .ant-menu-dark .ant-menu-item {
+  transition: background-color 0.3s ease, color 0.3s ease;
+} */
+
+/* ::ng-deep .ant-menu-dark .ant-menu-item-selected span {
+  color: rgb(247, 56, 56) !important;
+} */
+
+button .ant-dropdown-trigger {
+  background: transparent;
+  border: none;
+  margin-left: 10px;
+  margin-right: 10px;
+}
